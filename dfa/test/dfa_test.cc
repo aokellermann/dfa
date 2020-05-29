@@ -22,12 +22,19 @@ struct Transition
 
 TEST(DFA, ParseFile)
 {
-  const std::string file_name = "m" + std::to_string(1) + ".dfa";
-  std::ifstream stream(file_name);
-  std::stringstream sstr;
-  sstr << stream.rdbuf();
+  const std::string dfa_file_contents =
+      "states: q1 q2 q3\n"
+      "alphabet: 0 1\n"
+      "startstate: q1\n"
+      "finalstate: q2\n"
+      "transition: q1 0 q1\n"
+      "transition: q1 1 q2\n"
+      "transition: q2 0 q3\n"
+      "transition: q2 1 q2\n"
+      "transition: q3 0 q2\n"
+      "transition: q3 1 q2";
 
-  dfa::Dfa dfa(sstr.str());
+  dfa::Dfa dfa(dfa_file_contents);
 
   const auto& states = dfa.GetStates();
   EXPECT_NE(states.find("q1"), states.end());
@@ -68,12 +75,19 @@ TEST(DFA, ParseFile)
 
 TEST(DFA, AcceptedInputs)
 {
-  const std::string file_name = "m" + std::to_string(1) + ".dfa";
-  std::ifstream stream(file_name);
-  std::stringstream sstr;
-  sstr << stream.rdbuf();
+  const std::string dfa_file_contents =
+      "states: q1 q2 q3\n"
+      "alphabet: 0 1\n"
+      "startstate: q1\n"
+      "finalstate: q2\n"
+      "transition: q1 0 q1\n"
+      "transition: q1 1 q2\n"
+      "transition: q2 0 q3\n"
+      "transition: q2 1 q2\n"
+      "transition: q3 0 q2\n"
+      "transition: q3 1 q2";
 
-  dfa::Dfa dfa(sstr.str());
+  dfa::Dfa dfa(dfa_file_contents);
 
   EXPECT_EQ(dfa.AcceptsString("11111"), dfa::Dfa::Acceptance::ACCEPTS);
   EXPECT_EQ(dfa.AcceptsString("00100"), dfa::Dfa::Acceptance::ACCEPTS);
@@ -85,12 +99,19 @@ TEST(DFA, AcceptedInputs)
 
 TEST(DFA, RejectedInputs)
 {
-  const std::string file_name = "m" + std::to_string(1) + ".dfa";
-  std::ifstream stream(file_name);
-  std::stringstream sstr;
-  sstr << stream.rdbuf();
+  const std::string dfa_file_contents =
+      "states: q1 q2 q3\n"
+      "alphabet: 0 1\n"
+      "startstate: q1\n"
+      "finalstate: q2\n"
+      "transition: q1 0 q1\n"
+      "transition: q1 1 q2\n"
+      "transition: q2 0 q3\n"
+      "transition: q2 1 q2\n"
+      "transition: q3 0 q2\n"
+      "transition: q3 1 q2";
 
-  dfa::Dfa dfa(sstr.str());
+  dfa::Dfa dfa(dfa_file_contents);
 
   EXPECT_EQ(dfa.AcceptsString("00000"), dfa::Dfa::Acceptance::REJECTS);
   EXPECT_EQ(dfa.AcceptsString("01010"), dfa::Dfa::Acceptance::REJECTS);
@@ -99,12 +120,19 @@ TEST(DFA, RejectedInputs)
 
 TEST(DFA, InvalidAlphabet)
 {
-  const std::string file_name = "m" + std::to_string(1) + ".dfa";
-  std::ifstream stream(file_name);
-  std::stringstream sstr;
-  sstr << stream.rdbuf();
+  const std::string dfa_file_contents =
+      "states: q1 q2 q3\n"
+      "alphabet: 0 1\n"
+      "startstate: q1\n"
+      "finalstate: q2\n"
+      "transition: q1 0 q1\n"
+      "transition: q1 1 q2\n"
+      "transition: q2 0 q3\n"
+      "transition: q2 1 q2\n"
+      "transition: q3 0 q2\n"
+      "transition: q3 1 q2";
 
-  dfa::Dfa dfa(sstr.str());
+  dfa::Dfa dfa(dfa_file_contents);
 
   EXPECT_EQ(dfa.AcceptsString("a11111"), dfa::Dfa::Acceptance::INVALID_ALPHABET);
   EXPECT_EQ(dfa.AcceptsString("00100b"), dfa::Dfa::Acceptance::INVALID_ALPHABET);
