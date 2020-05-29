@@ -5,3 +5,78 @@
  */
 
 #include "dfa.h"
+
+#include <iterator>
+#include <sstream>
+#include <string>
+#include <vector>
+
+namespace dfa
+{
+Dfa::Dfa(const std::string& dfa_file_contents)
+{
+  std::istringstream sstr(dfa_file_contents);
+
+  const std::string states_str = "states: ";
+  const std::string alphabet_str = "alphabet: ";
+  const std::string start_state_str = "startstate: ";
+  const std::string final_state_str = "finalstate: ";
+  const std::string transition_str = "transition: ";
+  for (std::string line; std::getline(sstr, line);)
+  {
+    const std::size_t first_space_idx = line.find(' ');
+    if (first_space_idx == std::string::npos)
+    {
+      // Parsing failure
+      throw std::runtime_error("Parsing error: could not find first space after colon");
+    }
+
+    const auto tokens_begin_idx = first_space_idx + 1;
+    std::istringstream tokens_sstr(line.substr(tokens_begin_idx));
+
+    const auto tokens_begin = std::istream_iterator<std::string>(tokens_sstr);
+    const auto tokens_end = std::istream_iterator<std::string>();
+    std::vector<std::string> tokens(tokens_begin, tokens_end);
+
+    if (tokens.empty())
+    {
+      throw std::runtime_error("Parsing error: no tokens");
+    }
+
+    const auto section_str = line.substr(0, tokens_begin_idx);
+    if (section_str == states_str)
+    {
+      states_.insert(std::make_move_iterator(tokens.begin()), std::make_move_iterator(tokens.end()));
+    }
+    else if (section_str == alphabet_str)
+    {
+      alphabet_.insert(std::make_move_iterator(tokens.begin()), std::make_move_iterator(tokens.end()));
+    }
+    else if (section_str == start_state_str)
+    {
+      if (!tokens.empty())
+      {
+        start_state_ = std::move(tokens[0]);
+      }
+    }
+    else if (section_str == final_state_str)
+    {
+      final_states_.insert(std::make_move_iterator(tokens.begin()), std::make_move_iterator(tokens.end()));
+    }
+    else if (section_str == transition_str)
+    {
+      if (tokens.size() == 3)
+      {
+        transitions_[tokens[0]][tokens[1]] = tokens[2];
+      }
+    }
+    else
+    {
+      throw std::runtime_error("Parsing error: invalid section");
+    }
+  }
+}
+bool Dfa::AcceptsString(const std::string& input) {
+  return false;
+}
+}  // namespace dfa
