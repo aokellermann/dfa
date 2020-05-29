@@ -29,7 +29,7 @@ class Dfa
 
   explicit Dfa(const std::string& dfa_file_contents);
 
-  Acceptance AcceptsString(const std::string& input);
+  Acceptance AcceptsString(const std::string& input, bool verbose = false);
 
   constexpr const std::unordered_set<StateID>& GetStates() const noexcept { return states_; }
 

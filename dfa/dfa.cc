@@ -6,6 +6,7 @@
 
 #include "dfa.h"
 
+#include <iostream>
 #include <iterator>
 #include <sstream>
 #include <string>
@@ -76,9 +77,14 @@ Dfa::Dfa(const std::string& dfa_file_contents)
     }
   }
 }
-Dfa::Acceptance Dfa::AcceptsString(const std::string& input)
+Dfa::Acceptance Dfa::AcceptsString(const std::string& input, bool verbose)
 {
   StateID current_state_id = start_state_;
+  if (verbose)
+  {
+    std::cout << "Starting State: " << current_state_id << std::endl;
+  }
+
   Symbol current_symbol;
   for (const auto& c : input)
   {
@@ -98,6 +104,12 @@ Dfa::Acceptance Dfa::AcceptsString(const std::string& input)
     if (current_state_transition_for_symbol == current_state_transitions->second.end())
     {
       return NO_TRANSITION;
+    }
+
+    if (verbose)
+    {
+      std::cout << "Current State: " << current_state_id << " Symbol: " << current_symbol
+                << " -> New State: " << current_state_transition_for_symbol->second << std::endl;
     }
 
     current_state_id = current_state_transition_for_symbol->second;
