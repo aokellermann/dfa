@@ -19,9 +19,17 @@ class Dfa
   using Symbol = std::string;
   using Transitions = std::unordered_map<Symbol, StateID>;
 
+  enum Acceptance
+  {
+    ACCEPTS,
+    REJECTS,
+    INVALID_ALPHABET,
+    NO_TRANSITION
+  };
+
   explicit Dfa(const std::string& dfa_file_contents);
 
-  bool AcceptsString(const std::string& input);
+  Acceptance AcceptsString(const std::string& input);
 
   constexpr const std::unordered_set<StateID>& GetStates() const noexcept { return states_; }
 

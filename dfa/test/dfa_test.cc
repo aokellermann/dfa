@@ -27,7 +27,6 @@ TEST(DFA, ParseFile)
   std::stringstream sstr;
   sstr << stream.rdbuf();
 
-  // Basically check that it doesn't fail.
   dfa::Dfa dfa(sstr.str());
 
   const auto& states = dfa.GetStates();
@@ -65,6 +64,53 @@ TEST(DFA, ParseFile)
       }
     }
   }
+}
+
+TEST(DFA, AcceptedInputs)
+{
+  const std::string file_name = "m" + std::to_string(1) + ".dfa";
+  std::ifstream stream(file_name);
+  std::stringstream sstr;
+  sstr << stream.rdbuf();
+
+  dfa::Dfa dfa(sstr.str());
+
+  EXPECT_EQ(dfa.AcceptsString("11111"), dfa::Dfa::Acceptance::ACCEPTS);
+  EXPECT_EQ(dfa.AcceptsString("00100"), dfa::Dfa::Acceptance::ACCEPTS);
+  EXPECT_EQ(dfa.AcceptsString("11100"), dfa::Dfa::Acceptance::ACCEPTS);
+  EXPECT_EQ(dfa.AcceptsString("110011"), dfa::Dfa::Acceptance::ACCEPTS);
+  EXPECT_EQ(dfa.AcceptsString("001001"), dfa::Dfa::Acceptance::ACCEPTS);
+  EXPECT_EQ(dfa.AcceptsString("0010001"), dfa::Dfa::Acceptance::ACCEPTS);
+}
+
+TEST(DFA, RejectedInputs)
+{
+  const std::string file_name = "m" + std::to_string(1) + ".dfa";
+  std::ifstream stream(file_name);
+  std::stringstream sstr;
+  sstr << stream.rdbuf();
+
+  dfa::Dfa dfa(sstr.str());
+
+  EXPECT_EQ(dfa.AcceptsString("00000"), dfa::Dfa::Acceptance::REJECTS);
+  EXPECT_EQ(dfa.AcceptsString("01010"), dfa::Dfa::Acceptance::REJECTS);
+  EXPECT_EQ(dfa.AcceptsString("001000"), dfa::Dfa::Acceptance::REJECTS);
+}
+
+TEST(DFA, InvalidAlphabet)
+{
+  const std::string file_name = "m" + std::to_string(1) + ".dfa";
+  std::ifstream stream(file_name);
+  std::stringstream sstr;
+  sstr << stream.rdbuf();
+
+  dfa::Dfa dfa(sstr.str());
+
+  EXPECT_EQ(dfa.AcceptsString("a11111"), dfa::Dfa::Acceptance::INVALID_ALPHABET);
+  EXPECT_EQ(dfa.AcceptsString("00100b"), dfa::Dfa::Acceptance::INVALID_ALPHABET);
+  EXPECT_EQ(dfa.AcceptsString("111c00"), dfa::Dfa::Acceptance::INVALID_ALPHABET);
+  EXPECT_EQ(dfa.AcceptsString("111020"), dfa::Dfa::Acceptance::INVALID_ALPHABET);
+  EXPECT_EQ(dfa.AcceptsString("1-11c00"), dfa::Dfa::Acceptance::INVALID_ALPHABET);
 }
 
 int main(int argc, char** argv)

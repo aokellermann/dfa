@@ -76,7 +76,33 @@ Dfa::Dfa(const std::string& dfa_file_contents)
     }
   }
 }
-bool Dfa::AcceptsString(const std::string& input) {
-  return false;
+Dfa::Acceptance Dfa::AcceptsString(const std::string& input)
+{
+  StateID current_state_id = start_state_;
+  Symbol current_symbol;
+  for (const auto& c : input)
+  {
+    current_symbol = c;
+    if (alphabet_.find(current_symbol) == alphabet_.end())
+    {
+      return INVALID_ALPHABET;
+    }
+
+    const auto current_state_transitions = transitions_.find(current_state_id);
+    if (current_state_transitions == transitions_.end())
+    {
+      return NO_TRANSITION;
+    }
+
+    const auto current_state_transition_for_symbol = current_state_transitions->second.find(current_symbol);
+    if (current_state_transition_for_symbol == current_state_transitions->second.end())
+    {
+      return NO_TRANSITION;
+    }
+
+    current_state_id = current_state_transition_for_symbol->second;
+  }
+
+  return final_states_.find(current_state_id) != final_states_.end() ? ACCEPTS : REJECTS;
 }
 }  // namespace dfa
