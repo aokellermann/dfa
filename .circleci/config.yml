@@ -1,0 +1,27 @@
+version: 2
+
+jobs:
+  build:
+    docker:
+      - image: aokellermann/iex:ci
+        auth:
+          username: aokellermann
+          password: $DOCKERHUB_PASSWORD
+    steps:
+      - checkout
+      - run:
+          name: Configure
+          command: |
+            rm -rf build
+            mkdir build
+            cd build
+            cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=ON -DDFA_BUILD_DOCUMENTATION:BOOL=ON -DDFA_ENABLE_ALLWARNINGS:BOOL=ON -DDFA_BUILD_TESTING:BOOL=ON ..
+      - run:
+          name: Style
+          command: ./style.sh
+      - run:
+          name: Compile
+          command: cmake --build build/
+      - run:
+          name: Unit Test
+          command: ././build/dfa/test/unit_test
