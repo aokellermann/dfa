@@ -77,6 +77,45 @@ Dfa::Dfa(const std::string& dfa_file_contents)
     }
   }
 }
+
+Dfa::Dfa(const Dfa::Json& dfa_file_contents)
+{
+  try
+  {
+    for (const auto& element : dfa_file_contents.items())
+    {
+      if (element.key() == "states")
+      {
+        states_.insert(element.value().begin(), element.value().end());
+      }
+      else if (element.key() == "alphabet")
+      {
+        alphabet_.insert(element.value().begin(), element.value().end());
+      }
+      else if (element.key() == "transitions")
+      {
+        const auto& arr = element.value();
+        for (const auto& tr : arr)
+        {
+          transitions_[tr["s1"]][tr["symbol"]] = tr["s2"];
+        }
+      }
+      else if (element.key() == "start_state")
+      {
+        start_state_ = element.value();
+      }
+      else if (element.key() == "final_states")
+      {
+        final_states_.insert(element.value().begin(), element.value().end());
+      }
+    }
+  }
+  catch (const std::exception& e)
+  {
+    throw std::runtime_error(std::string("Failed to parse JSON: ") + e.what());
+  }
+}
+
 Dfa::Acceptance Dfa::AcceptsString(const std::string& input, bool verbose)
 {
   StateID current_state_id = start_state_;

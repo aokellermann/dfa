@@ -20,7 +20,7 @@ struct Transition
   std::string s2;
 };
 
-TEST(DFA, ParseFile)
+TEST(DFA, ParseDFA)
 {
   const std::string dfa_file_contents =
       "states: q1 q2 q3\n"
@@ -35,6 +35,97 @@ TEST(DFA, ParseFile)
       "transition: q3 1 q2";
 
   dfa::Dfa dfa(dfa_file_contents);
+
+  const auto& states = dfa.GetStates();
+  EXPECT_NE(states.find("q1"), states.end());
+  EXPECT_NE(states.find("q2"), states.end());
+  EXPECT_NE(states.find("q3"), states.end());
+
+  const auto& alphabet = dfa.GetAlphabet();
+  EXPECT_NE(alphabet.find("0"), alphabet.end());
+  EXPECT_NE(alphabet.find("1"), alphabet.end());
+
+  const auto& start_state = dfa.GetStartState();
+  const auto& final_states = dfa.GetFinalStates();
+  EXPECT_EQ(start_state, "q1");
+  EXPECT_NE(final_states.find("q2"), final_states.end());
+
+  const auto& transitions = dfa.GetTransitions();
+
+  const std::vector<Transition> expected_transitions = {
+      {"q1", "0", "q1"}, {"q1", "1", "q2"}, {"q2", "0", "q3"}, {"q2", "1", "q2"}, {"q3", "0", "q2"}, {"q3", "1", "q2"},
+  };
+
+  for (const auto& transition : expected_transitions)
+  {
+    const auto iter_1 = transitions.find(transition.s1);
+    EXPECT_NE(iter_1, transitions.end());
+
+    if (iter_1 != transitions.end())
+    {
+      const auto iter_2 = iter_1->second.find(transition.symbol);
+      EXPECT_NE(iter_2, iter_1->second.end());
+      if (iter_2 != iter_1->second.end())
+      {
+        EXPECT_EQ(iter_2->second, transition.s2);
+      }
+    }
+  }
+}
+
+TEST(DFA, ParseJSON)
+{
+  const std::string dfa_file_contents =
+      "{\n"
+      "  \"states\": [\n"
+      "    \"q1\",\n"
+      "    \"q2\",\n"
+      "    \"q3\"\n"
+      "  ],\n"
+      "  \"alphabet\": [\n"
+      "    \"0\",\n"
+      "    \"1\"\n"
+      "  ],\n"
+      "  \"start_state\": \"q1\",\n"
+      "  \"final_states\": [\n"
+      "    \"q2\"\n"
+      "  ],\n"
+      "  \"transitions\": [\n"
+      "    {\n"
+      "      \"s1\": \"q1\",\n"
+      "      \"symbol\": \"0\",\n"
+      "      \"s2\": \"q1\"\n"
+      "    },\n"
+      "    {\n"
+      "      \"s1\": \"q1\",\n"
+      "      \"symbol\": \"1\",\n"
+      "      \"s2\": \"q2\"\n"
+      "    },\n"
+      "    {\n"
+      "      \"s1\": \"q2\",\n"
+      "      \"symbol\": \"0\",\n"
+      "      \"s2\": \"q3\"\n"
+      "    },\n"
+      "    {\n"
+      "      \"s1\": \"q2\",\n"
+      "      \"symbol\": \"1\",\n"
+      "      \"s2\": \"q2\"\n"
+      "    },\n"
+      "    {\n"
+      "      \"s1\": \"q3\",\n"
+      "      \"symbol\": \"0\",\n"
+      "      \"s2\": \"q2\"\n"
+      "    },\n"
+      "    {\n"
+      "      \"s1\": \"q3\",\n"
+      "      \"symbol\": \"1\",\n"
+      "      \"s2\": \"q2\"\n"
+      "    }\n"
+      "  ]\n"
+      "}";
+
+  nlohmann::json json = nlohmann::json::parse(dfa_file_contents);
+  dfa::Dfa dfa(json);
 
   const auto& states = dfa.GetStates();
   EXPECT_NE(states.find("q1"), states.end());

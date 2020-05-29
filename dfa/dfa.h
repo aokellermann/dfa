@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include <nlohmann/json.hpp>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
@@ -19,6 +20,8 @@ class Dfa
   using Symbol = std::string;
   using Transitions = std::unordered_map<Symbol, StateID>;
 
+  using Json = nlohmann::json;
+
   enum Acceptance
   {
     ACCEPTS,
@@ -28,6 +31,8 @@ class Dfa
   };
 
   explicit Dfa(const std::string& dfa_file_contents);
+
+  explicit Dfa(const Json& dfa_file_contents);
 
   Acceptance AcceptsString(const std::string& input, bool verbose = false);
 
