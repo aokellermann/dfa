@@ -14,6 +14,51 @@
 
 namespace dfa
 {
+namespace
+{
+const Dfa::Symbol kEpsilon = "epsilon";
+}
+
+std::ostream& operator<<(std::ostream& os, const StateID& state)
+{
+  if (state.size() == 1)
+  {
+    os << *state.begin();
+  }
+  else
+  {
+    os << '{';
+
+    std::size_t i = 0;
+    for (const auto& s : state)
+    {
+      os << s;
+      if (i != state.size() - 1)
+      {
+        os << ", ";
+      }
+      else
+      {
+        os << '}';
+      }
+
+      ++i;
+    }
+  }
+  return os;
+}
+
+std::size_t StateIDHasher::operator()(const StateID& state) const
+{
+  std::size_t seed = 0;
+  for (const auto& s : state)
+  {
+    seed ^= std::hash<std::string>()(s) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+  }
+
+  return seed;
+}
+
 Dfa::Dfa(const std::string& dfa_file_contents)
 {
   std::istringstream sstr(dfa_file_contents);
@@ -47,7 +92,10 @@ Dfa::Dfa(const std::string& dfa_file_contents)
     const auto section_str = line.substr(0, tokens_begin_idx);
     if (section_str == states_str)
     {
-      states_.insert(std::make_move_iterator(tokens.begin()), std::make_move_iterator(tokens.end()));
+      for (const auto& token : tokens)
+      {
+        states_.insert({token});
+      }
     }
     else if (section_str == alphabet_str)
     {
@@ -57,18 +105,21 @@ Dfa::Dfa(const std::string& dfa_file_contents)
     {
       if (!tokens.empty())
       {
-        start_state_ = std::move(tokens[0]);
+        start_state_.emplace(std::move(tokens[0]));
       }
     }
     else if (section_str == final_state_str)
     {
-      final_states_.insert(std::make_move_iterator(tokens.begin()), std::make_move_iterator(tokens.end()));
+      for (const auto& token : tokens)
+      {
+        final_states_.insert({token});
+      }
     }
     else if (section_str == transition_str)
     {
       if (tokens.size() == 3)
       {
-        transitions_[tokens[0]][tokens[1]] = tokens[2];
+        transitions_[StateID{tokens[0]}][tokens[1]].emplace(tokens[2]);
       }
     }
     else
@@ -86,7 +137,10 @@ Dfa::Dfa(const Dfa::Json& dfa_file_contents)
     {
       if (element.key() == "states")
       {
-        states_.insert(element.value().begin(), element.value().end());
+        for (const auto& j : element.value())
+        {
+          states_.insert(StateID(j.get<std::string>()));
+        }
       }
       else if (element.key() == "alphabet")
       {
@@ -97,16 +151,19 @@ Dfa::Dfa(const Dfa::Json& dfa_file_contents)
         const auto& arr = element.value();
         for (const auto& tr : arr)
         {
-          transitions_[tr["s1"]][tr["symbol"]] = tr["s2"];
+          transitions_[StateID{tr["s1"]}][tr["symbol"]].emplace(tr["s2"]);
         }
       }
       else if (element.key() == "start_state")
       {
-        start_state_ = element.value();
+        start_state_.emplace(element.value());
       }
       else if (element.key() == "final_states")
       {
-        final_states_.insert(element.value().begin(), element.value().end());
+        for (const auto& j : element.value())
+        {
+          final_states_.insert(StateID(j.get<std::string>()));
+        }
       }
     }
   }

@@ -37,9 +37,9 @@ TEST(DFA, ParseDFA)
   dfa::Dfa dfa(dfa_file_contents);
 
   const auto& states = dfa.GetStates();
-  EXPECT_NE(states.find("q1"), states.end());
-  EXPECT_NE(states.find("q2"), states.end());
-  EXPECT_NE(states.find("q3"), states.end());
+  EXPECT_NE(states.find({"q1"}), states.end());
+  EXPECT_NE(states.find({"q2"}), states.end());
+  EXPECT_NE(states.find({"q3"}), states.end());
 
   const auto& alphabet = dfa.GetAlphabet();
   EXPECT_NE(alphabet.find("0"), alphabet.end());
@@ -47,8 +47,8 @@ TEST(DFA, ParseDFA)
 
   const auto& start_state = dfa.GetStartState();
   const auto& final_states = dfa.GetFinalStates();
-  EXPECT_EQ(start_state, "q1");
-  EXPECT_NE(final_states.find("q2"), final_states.end());
+  EXPECT_EQ(start_state, dfa::StateID{"q1"});
+  EXPECT_NE(final_states.find({"q2"}), final_states.end());
 
   const auto& transitions = dfa.GetTransitions();
 
@@ -58,7 +58,7 @@ TEST(DFA, ParseDFA)
 
   for (const auto& transition : expected_transitions)
   {
-    const auto iter_1 = transitions.find(transition.s1);
+    const auto iter_1 = transitions.find({transition.s1});
     EXPECT_NE(iter_1, transitions.end());
 
     if (iter_1 != transitions.end())
@@ -67,7 +67,7 @@ TEST(DFA, ParseDFA)
       EXPECT_NE(iter_2, iter_1->second.end());
       if (iter_2 != iter_1->second.end())
       {
-        EXPECT_EQ(iter_2->second, transition.s2);
+        EXPECT_EQ(iter_2->second, dfa::StateID{transition.s2});
       }
     }
   }
@@ -128,18 +128,18 @@ TEST(DFA, ParseJSON)
   dfa::Dfa dfa(json);
 
   const auto& states = dfa.GetStates();
-  EXPECT_NE(states.find("q1"), states.end());
-  EXPECT_NE(states.find("q2"), states.end());
-  EXPECT_NE(states.find("q3"), states.end());
+  EXPECT_NE(states.find({"q1"}), states.end());
+  EXPECT_NE(states.find({"q2"}), states.end());
+  EXPECT_NE(states.find({"q3"}), states.end());
 
   const auto& alphabet = dfa.GetAlphabet();
-  EXPECT_NE(alphabet.find("0"), alphabet.end());
+  EXPECT_NE(alphabet.find({"0"}), alphabet.end());
   EXPECT_NE(alphabet.find("1"), alphabet.end());
 
   const auto& start_state = dfa.GetStartState();
   const auto& final_states = dfa.GetFinalStates();
-  EXPECT_EQ(start_state, "q1");
-  EXPECT_NE(final_states.find("q2"), final_states.end());
+  EXPECT_EQ(start_state, dfa::StateID{"q1"});
+  EXPECT_NE(final_states.find({"q2"}), final_states.end());
 
   const auto& transitions = dfa.GetTransitions();
 
@@ -149,7 +149,7 @@ TEST(DFA, ParseJSON)
 
   for (const auto& transition : expected_transitions)
   {
-    const auto iter_1 = transitions.find(transition.s1);
+    const auto iter_1 = transitions.find({transition.s1});
     EXPECT_NE(iter_1, transitions.end());
 
     if (iter_1 != transitions.end())
@@ -158,7 +158,7 @@ TEST(DFA, ParseJSON)
       EXPECT_NE(iter_2, iter_1->second.end());
       if (iter_2 != iter_1->second.end())
       {
-        EXPECT_EQ(iter_2->second, transition.s2);
+        EXPECT_EQ(iter_2->second, dfa::StateID{transition.s2});
       }
     }
   }

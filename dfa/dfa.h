@@ -13,11 +13,36 @@
 
 namespace dfa
 {
+struct StateID : std::unordered_set<std::string>
+{
+  using std::unordered_set<std::string>::unordered_set;
+
+  inline explicit StateID(std::string id) { emplace(std::move(id)); }
+
+  friend std::ostream& operator<<(std::ostream& os, const StateID& state);
+
+  inline bool operator==(const StateID& other)
+  {
+    const auto* b = dynamic_cast<const std::unordered_set<std::string>*>(&other);
+    return b != nullptr && *this == *b;
+  }
+};
+
+struct StateIDHasher
+{
+  std::size_t operator()(const StateID& state) const;
+};
+
+using StateIDSet = std::unordered_set<StateID, StateIDHasher>;
+
+template <typename T>
+using StateIDMap = std::unordered_map<StateID, T, StateIDHasher>;
+
 class Dfa
 {
  public:
-  using StateID = std::string;
   using Symbol = std::string;
+  using Alphabet = std::unordered_set<Symbol>;
   using Transitions = std::unordered_map<Symbol, StateID>;
 
   using Json = nlohmann::json;
@@ -36,31 +61,31 @@ class Dfa
 
   Acceptance AcceptsString(const std::string& input, bool verbose = false);
 
-  constexpr const std::unordered_set<StateID>& GetStates() const noexcept { return states_; }
+  constexpr const StateIDSet& GetStates() const noexcept { return states_; }
 
-  constexpr const std::unordered_set<Symbol>& GetAlphabet() const noexcept { return alphabet_; }
+  constexpr const Alphabet& GetAlphabet() const noexcept { return alphabet_; }
 
-  constexpr const std::unordered_map<StateID, Transitions>& GetTransitions() const noexcept { return transitions_; }
+  constexpr const StateIDMap<Transitions>& GetTransitions() const noexcept { return transitions_; }
 
   constexpr const StateID& GetStartState() const noexcept { return start_state_; }
 
-  constexpr const std::unordered_set<StateID>& GetFinalStates() const noexcept { return final_states_; }
+  constexpr const StateIDSet& GetFinalStates() const noexcept { return final_states_; }
 
  private:
   /**
    * Q: all possible states.
    */
-  std::unordered_set<StateID> states_;
+  StateIDSet states_;
 
   /**
    * Sigma: input symbols.
    */
-  std::unordered_set<Symbol> alphabet_;
+  Alphabet alphabet_;
 
   /**
    * Delta: Q x Sigma -> Q.
    */
-  std::unordered_map<StateID, Transitions> transitions_;
+  StateIDMap<Transitions> transitions_;
 
   /**
    * q0: element of Q.
@@ -70,7 +95,7 @@ class Dfa
   /**
    * F: subset of Q.
    */
-  std::unordered_set<StateID> final_states_;
+  StateIDSet final_states_;
 };
 
 }  // namespace dfa
