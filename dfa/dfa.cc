@@ -190,34 +190,37 @@ Dfa::Acceptance Dfa::AcceptsString(const std::string& input, bool verbose) const
     std::cout << "Starting State: " << current_state_id << std::endl;
   }
 
-  Symbol current_symbol;
-  for (const auto& c : input)
+  if (input != kEpsilon)
   {
-    current_symbol = c;
-    if (alphabet_.find(current_symbol) == alphabet_.end())
+    Symbol current_symbol;
+    for (const auto& c : input)
     {
-      return INVALID_ALPHABET;
-    }
+      current_symbol = c;
+      if (alphabet_.find(current_symbol) == alphabet_.end())
+      {
+        return INVALID_ALPHABET;
+      }
 
-    const auto current_state_transitions = transitions_.find(current_state_id);
-    if (current_state_transitions == transitions_.end())
-    {
-      return NO_TRANSITION;
-    }
+      const auto current_state_transitions = transitions_.find(current_state_id);
+      if (current_state_transitions == transitions_.end())
+      {
+        return NO_TRANSITION;
+      }
 
-    const auto current_state_transition_for_symbol = current_state_transitions->second.find(current_symbol);
-    if (current_state_transition_for_symbol == current_state_transitions->second.end())
-    {
-      return NO_TRANSITION;
-    }
+      const auto current_state_transition_for_symbol = current_state_transitions->second.find(current_symbol);
+      if (current_state_transition_for_symbol == current_state_transitions->second.end())
+      {
+        return NO_TRANSITION;
+      }
 
-    if (verbose)
-    {
-      std::cout << "Current State: " << current_state_id << " Symbol: " << current_symbol
-                << " -> New State: " << current_state_transition_for_symbol->second << std::endl;
-    }
+      if (verbose)
+      {
+        std::cout << "Current State: " << current_state_id << " Symbol: " << current_symbol
+                  << " -> New State: " << current_state_transition_for_symbol->second << std::endl;
+      }
 
-    current_state_id = current_state_transition_for_symbol->second;
+      current_state_id = current_state_transition_for_symbol->second;
+    }
   }
 
   return final_states_.find(current_state_id) != final_states_.end() ? ACCEPTS : REJECTS;

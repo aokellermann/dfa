@@ -323,6 +323,103 @@ TEST(NFA, ConvertToDFA)
   }
 }
 
+TEST(NFA, AcceptedInputs)
+{
+  const std::string dfa_file_contents =
+      "states: q0 q1 q2 q3\n"
+      "alphabet: a b\n"
+      "startstate: q0\n"
+      "finalstate: q0\n"
+      "transition: q0 epsilon q1\n"
+      "transition: q1 a q1\n"
+      "transition: q1 a q2\n"
+      "transition: q1 b q2\n"
+      "transition: q2 a q0\n"
+      "transition: q2 a q2\n"
+      "transition: q2 b q3\n"
+      "transition: q3 b q1";
+
+  dfa::Dfa dfa(dfa_file_contents);
+
+  EXPECT_EQ(dfa.AcceptsString("epsilon"), dfa::Dfa::Acceptance::ACCEPTS);
+  EXPECT_EQ(dfa.AcceptsString("aba"), dfa::Dfa::Acceptance::ACCEPTS);
+  EXPECT_EQ(dfa.AcceptsString("ba"), dfa::Dfa::Acceptance::ACCEPTS);
+  EXPECT_EQ(dfa.AcceptsString("abbaba"), dfa::Dfa::Acceptance::ACCEPTS);
+  EXPECT_EQ(dfa.AcceptsString("aa"), dfa::Dfa::Acceptance::ACCEPTS);
+}
+
+TEST(NFA, RejectedInputs)
+{
+  const std::string dfa_file_contents =
+      "states: q0 q1 q2 q3\n"
+      "alphabet: a b\n"
+      "startstate: q0\n"
+      "finalstate: q0\n"
+      "transition: q0 epsilon q1\n"
+      "transition: q1 a q1\n"
+      "transition: q1 a q2\n"
+      "transition: q1 b q2\n"
+      "transition: q2 a q0\n"
+      "transition: q2 a q2\n"
+      "transition: q2 b q3\n"
+      "transition: q3 b q1";
+
+  dfa::Dfa dfa(dfa_file_contents);
+
+  EXPECT_EQ(dfa.AcceptsString("a"), dfa::Dfa::Acceptance::REJECTS);
+  EXPECT_EQ(dfa.AcceptsString("b"), dfa::Dfa::Acceptance::REJECTS);
+  EXPECT_EQ(dfa.AcceptsString("abb"), dfa::Dfa::Acceptance::REJECTS);
+  EXPECT_EQ(dfa.AcceptsString("babba"), dfa::Dfa::Acceptance::REJECTS);
+}
+
+TEST(NFA, InvalidAlphabet)
+{
+  const std::string dfa_file_contents =
+      "states: q0 q1 q2 q3\n"
+      "alphabet: a b\n"
+      "startstate: q0\n"
+      "finalstate: q0\n"
+      "transition: q0 epsilon q1\n"
+      "transition: q1 a q1\n"
+      "transition: q1 a q2\n"
+      "transition: q1 b q2\n"
+      "transition: q2 a q0\n"
+      "transition: q2 a q2\n"
+      "transition: q2 b q3\n"
+      "transition: q3 b q1";
+
+  dfa::Dfa dfa(dfa_file_contents);
+
+  EXPECT_EQ(dfa.AcceptsString("1ababb"), dfa::Dfa::Acceptance::INVALID_ALPHABET);
+  EXPECT_EQ(dfa.AcceptsString("ababb2"), dfa::Dfa::Acceptance::INVALID_ALPHABET);
+  EXPECT_EQ(dfa.AcceptsString("abb3bba"), dfa::Dfa::Acceptance::INVALID_ALPHABET);
+  EXPECT_EQ(dfa.AcceptsString("abbacb"), dfa::Dfa::Acceptance::INVALID_ALPHABET);
+  EXPECT_EQ(dfa.AcceptsString("a-bbab"), dfa::Dfa::Acceptance::INVALID_ALPHABET);
+}
+
+TEST(NFA, NoTransition)
+{
+  const std::string dfa_file_contents =
+      "states: q0 q1 q2 q3\n"
+      "alphabet: a b\n"
+      "startstate: q0\n"
+      "finalstate: q0\n"
+      "transition: q0 epsilon q1\n"
+      "transition: q1 a q1\n"
+      "transition: q1 a q2\n"
+      "transition: q1 b q2\n"
+      "transition: q2 a q0\n"
+      "transition: q2 a q2\n"
+      "transition: q2 b q3\n"
+      "transition: q3 b q1";
+
+  dfa::Dfa dfa(dfa_file_contents);
+
+  EXPECT_EQ(dfa.AcceptsString("bba"), dfa::Dfa::Acceptance::NO_TRANSITION);
+  EXPECT_EQ(dfa.AcceptsString("bbab"), dfa::Dfa::Acceptance::NO_TRANSITION);
+  EXPECT_EQ(dfa.AcceptsString("bbaa"), dfa::Dfa::Acceptance::NO_TRANSITION);
+}
+
 TEST(Hasher, NoCollisions)
 {
   dfa::StateID s1{"q0", "q1", "q2"};
