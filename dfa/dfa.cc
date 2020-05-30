@@ -19,7 +19,7 @@ namespace
 const Dfa::Symbol kEpsilon = "epsilon";
 }  // namespace
 
-std::ostream& operator<<(std::ostream& os, const StateID& state)
+std::ostream& operator<<(std::ostream& os, const State& state)
 {
   if (state.size() == 1)
   {
@@ -48,7 +48,7 @@ std::ostream& operator<<(std::ostream& os, const StateID& state)
   return os;
 }
 
-std::size_t StateIDHasher::operator()(const StateID& state) const
+std::size_t StateHasher::operator()(const State& state) const
 {
   // I was getting wayyy too many collisions using boost::hash_combine, so this is a workaround.
   // This is probably really slow...
@@ -129,7 +129,7 @@ Dfa::Dfa(const std::string& dfa_file_contents)
     {
       if (tokens.size() == 3)
       {
-        transitions_[StateID{tokens[0]}][tokens[1]].emplace(tokens[2]);
+        transitions_[State{tokens[0]}][tokens[1]].emplace(tokens[2]);
       }
     }
     else
@@ -151,7 +151,7 @@ Dfa::Dfa(const Dfa::Json& dfa_file_contents)
       {
         for (const auto& j : element.value())
         {
-          states_.insert(StateID(j.get<std::string>()));
+          states_.insert(State(j.get<std::string>()));
         }
       }
       else if (element.key() == "alphabet")
@@ -163,7 +163,7 @@ Dfa::Dfa(const Dfa::Json& dfa_file_contents)
         const auto& arr = element.value();
         for (const auto& tr : arr)
         {
-          transitions_[StateID{tr["s1"]}][tr["symbol"]].emplace(tr["s2"]);
+          transitions_[State{tr["s1"]}][tr["symbol"]].emplace(tr["s2"]);
         }
       }
       else if (element.key() == "start_state")
@@ -174,7 +174,7 @@ Dfa::Dfa(const Dfa::Json& dfa_file_contents)
       {
         for (const auto& j : element.value())
         {
-          final_states_.insert(StateID(j.get<std::string>()));
+          final_states_.insert(State(j.get<std::string>()));
         }
       }
     }
@@ -189,7 +189,7 @@ Dfa::Dfa(const Dfa::Json& dfa_file_contents)
 
 Dfa::Acceptance Dfa::AcceptsString(const std::string& input, bool verbose) const
 {
-  StateID current_state_id = start_state_;
+  State current_state_id = start_state_;
   if (verbose)
   {
     std::cout << "Starting State: " << current_state_id << std::endl;
@@ -231,7 +231,7 @@ Dfa::Acceptance Dfa::AcceptsString(const std::string& input, bool verbose) const
   return final_states_.find(current_state_id) != final_states_.end() ? ACCEPTS : REJECTS;
 }
 
-void Dfa::AggregateEpsilonClosure(StateID& total_state, const StateID& current_state) const
+void Dfa::AggregateEpsilonClosure(State& total_state, const State& current_state) const
 {
   const auto current_state_transitions = transitions_.find(current_state);
   if (current_state_transitions != transitions_.end())
@@ -252,7 +252,7 @@ void Dfa::AggregateEpsilonClosure(StateID& total_state, const StateID& current_s
   }
 }
 
-void Dfa::AggregateTransitions(StateIDMap<Transitions>& all_transitions, const StateID& current_state) const
+void Dfa::AggregateTransitions(StateMap<Transitions>& all_transitions, const State& current_state) const
 {
   // Check if there is at least one transition for the current state.
   bool at_least_once_transition = false;
@@ -271,7 +271,7 @@ void Dfa::AggregateTransitions(StateIDMap<Transitions>& all_transitions, const S
   }
 
   // Get epsilon closure before finding reachable states.
-  StateID aggregated_current_state = current_state;
+  State aggregated_current_state = current_state;
   for (const auto& state : current_state)
   {
     AggregateEpsilonClosure(aggregated_current_state, {state});
@@ -309,7 +309,7 @@ void Dfa::AggregateTransitions(StateIDMap<Transitions>& all_transitions, const S
     all_transitions.emplace(aggregated_current_state, aggregated_current_state_transitions);
 
     // Get set of unique reachable states.
-    StateIDSet reachable_states;
+    StateSet reachable_states;
     for (const auto& [symbol, states] : aggregated_current_state_transitions)
     {
       reachable_states.emplace(states);
@@ -348,10 +348,10 @@ void Dfa::ExpandNfaIfNeeded()
     return;
   }
 
-  StateIDMap<Transitions> all_transitions;
+  StateMap<Transitions> all_transitions;
 
   // First, find all states reachable by epsilon closure from the start state.
-  StateID epsilon_reachable_state{start_state_};
+  State epsilon_reachable_state{start_state_};
   AggregateEpsilonClosure(epsilon_reachable_state, start_state_);
 
   // Recursively find all states reachable by reading input from the start state.
@@ -370,7 +370,7 @@ void Dfa::ExpandNfaIfNeeded()
     states_.insert(transition.first);
   }
 
-  StateIDSet final_states;
+  StateSet final_states;
   for (const auto& state : states_)
   {
     for (const auto& final_state : final_states_)

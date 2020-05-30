@@ -13,37 +13,37 @@
 
 namespace dfa
 {
-struct StateID : std::unordered_set<std::string>
+struct State : std::unordered_set<std::string>
 {
   using std::unordered_set<std::string>::unordered_set;
 
-  inline explicit StateID(std::string id) { emplace(std::move(id)); }
+  inline explicit State(std::string id) { emplace(std::move(id)); }
 
-  friend std::ostream& operator<<(std::ostream& os, const StateID& state);
+  friend std::ostream& operator<<(std::ostream& os, const State& state);
 
-  inline bool operator==(const StateID& other)
+  inline bool operator==(const State& other)
   {
     const auto* b = dynamic_cast<const std::unordered_set<std::string>*>(&other);
     return b != nullptr && *this == *b;
   }
 };
 
-struct StateIDHasher
+struct StateHasher
 {
-  std::size_t operator()(const StateID& state) const;
+  std::size_t operator()(const State& state) const;
 };
 
-using StateIDSet = std::unordered_set<StateID, StateIDHasher>;
+using StateSet = std::unordered_set<State, StateHasher>;
 
 template <typename T>
-using StateIDMap = std::unordered_map<StateID, T, StateIDHasher>;
+using StateMap = std::unordered_map<State, T, StateHasher>;
 
 class Dfa
 {
  public:
   using Symbol = std::string;
   using Alphabet = std::unordered_set<Symbol>;
-  using Transitions = std::unordered_map<Symbol, StateID>;
+  using Transitions = std::unordered_map<Symbol, State>;
 
   using Json = nlohmann::json;
 
@@ -61,27 +61,27 @@ class Dfa
 
   Acceptance AcceptsString(const std::string& input, bool verbose = false) const;
 
-  constexpr const StateIDSet& GetStates() const noexcept { return states_; }
+  constexpr const StateSet& GetStates() const noexcept { return states_; }
 
   constexpr const Alphabet& GetAlphabet() const noexcept { return alphabet_; }
 
-  constexpr const StateIDMap<Transitions>& GetTransitions() const noexcept { return transitions_; }
+  constexpr const StateMap<Transitions>& GetTransitions() const noexcept { return transitions_; }
 
-  constexpr const StateID& GetStartState() const noexcept { return start_state_; }
+  constexpr const State& GetStartState() const noexcept { return start_state_; }
 
-  constexpr const StateIDSet& GetFinalStates() const noexcept { return final_states_; }
+  constexpr const StateSet& GetFinalStates() const noexcept { return final_states_; }
 
  private:
   void ExpandNfaIfNeeded();
 
-  void AggregateEpsilonClosure(StateID& total_state, const StateID& current_state) const;
+  void AggregateEpsilonClosure(State& total_state, const State& current_state) const;
 
-  void AggregateTransitions(StateIDMap<Transitions>& all_transitions, const StateID& current_state) const;
+  void AggregateTransitions(StateMap<Transitions>& all_transitions, const State& current_state) const;
 
   /**
    * Q: all possible states.
    */
-  StateIDSet states_;
+  StateSet states_;
 
   /**
    * Sigma: input symbols.
@@ -91,17 +91,17 @@ class Dfa
   /**
    * Delta: Q x Sigma -> Q.
    */
-  StateIDMap<Transitions> transitions_;
+  StateMap<Transitions> transitions_;
 
   /**
    * q0: element of Q.
    */
-  StateID start_state_;
+  State start_state_;
 
   /**
    * F: subset of Q.
    */
-  StateIDSet final_states_;
+  StateSet final_states_;
 };
 
 }  // namespace dfa
