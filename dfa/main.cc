@@ -176,6 +176,8 @@ int main(int argc, char** argv)
       case dfa::Dfa::NO_TRANSITION:
         std::cout << "NO TRANSITION";
         break;
+      default:
+        break;
     }
 
     std::cout << std::endl;
