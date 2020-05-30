@@ -10,6 +10,7 @@ message(STATUS "${PROJECT_NAME} version: ${PROJECT_VERSION}")
 option(DFA_ENABLE_ALLWARNINGS "Add GCC/Clang compatible compile options." OFF)
 option(DFA_BUILD_TESTING "Enable unit testing." OFF)
 option(DFA_BUILD_DOCUMENTATION "Generate Doxygen documentation." ON)
+option(DFA_BUILD_EXECUTABLE "Build DFA executable." ON)
 
 # Set configuration: Either Debug, Release (default), MinSizeRel, or RelWithDebInfo.
 if (NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
@@ -56,6 +57,10 @@ set(dfa_sources
 list(TRANSFORM dfa_headers PREPEND "dfa/")
 list(TRANSFORM dfa_sources PREPEND "dfa/")
 
+# Find dependencies.
+find_package(nlohmann_json 3.2.0 REQUIRED)
+find_package(Doxygen)
+
 # Create shared library.
 add_library(dfa SHARED ${dfa_sources})
 include(GNUInstallDirs) # Define LIBDIR, INCLUDEDIR, DOCDIR
@@ -67,9 +72,30 @@ target_compile_options(dfa PRIVATE ${DFA_EXTRA_COMPILE_OPTIONS})
 
 set(DFA_LIBRARIES dfa)
 
-# Find and link dependencies.
-find_package(nlohmann_json 3.2.0 REQUIRED)
-find_package(Doxygen)
+# Create executable if specified.
+if (DFA_BUILD_EXECUTABLE)
+    set(dfash_sources
+            main.cc
+            )
+
+    list(TRANSFORM dfash_sources PREPEND "dfa/")
+
+    add_executable(dfash ${dfash_sources})
+    target_include_directories(dfash PUBLIC
+            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+            $<INSTALL_INTERFACE:${CMAKE_INSTALL_BINDIR}>
+            )
+    target_compile_options(dfa PRIVATE ${DFA_EXTRA_COMPILE_OPTIONS})
+
+    target_link_libraries(dfash ${DFA_LIBRARIES})
+
+    install(TARGETS dfash
+            DESTINATION ${CMAKE_INSTALL_BINDIR}
+            COMPONENT runtime
+            )
+endif ()
+
+# Link dependencies
 target_link_libraries(dfa nlohmann_json::nlohmann_json)
 
 # Install shared object.
