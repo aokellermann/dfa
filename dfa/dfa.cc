@@ -75,6 +75,11 @@ Dfa::Dfa(const std::string& dfa_file_contents)
   const std::string transition_str = "transition: ";
   for (std::string line; std::getline(sstr, line);)
   {
+    if (line.empty())
+    {
+      break;
+    }
+
     const std::size_t first_space_idx = line.find(' ');
     if (first_space_idx == std::string::npos)
     {
