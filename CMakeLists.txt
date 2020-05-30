@@ -87,7 +87,7 @@ if (DFA_BUILD_EXECUTABLE)
             )
     target_compile_options(dfa PRIVATE ${DFA_EXTRA_COMPILE_OPTIONS})
 
-    target_link_libraries(dfash ${DFA_LIBRARIES})
+    target_link_libraries(dfash ${DFA_LIBRARIES} nlohmann_json::nlohmann_json)
 
     install(TARGETS dfash
             DESTINATION ${CMAKE_INSTALL_BINDIR}
