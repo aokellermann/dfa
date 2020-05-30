@@ -40,9 +40,35 @@ To use the library, simply include `dfa/dfa.h`. CMake users can link against `df
 Run `dfash -h` to see the list of options that can be specified.
 You can pass in either a DFA or JSON file.
 
+Then, the program will read from `stdin` any language you input. This library recognizes the special keyword
+`epsilon` for the empty string.
+
+```
+$ cat m1.in
+00000
+11111
+00100
+001001
+001000
+0010001
+epsilon
+```
+
+```bash
+$ cat m1.in | dfash -d m1.dfa
+00000 -> NOT ACCEPT
+11111 -> ACCEPT
+00100 -> ACCEPT
+001001 -> ACCEPT
+001000 -> NOT ACCEPT
+0010001 -> ACCEPT
+epsilon -> NOT ACCEPT
+```
+
 ##### DFA Format
 The input DFA file should adhere to this specification:
 ```
+$ cat m1.dfa
 states: q1 q2 q3
 alphabet: 0 1
 startstate: q1
@@ -53,13 +79,16 @@ transition: q2 0 q3
 transition: q2 1 q2
 transition: q3 0 q2
 transition: q3 1 q2 
-
 ```
 
 It must use the `.dfa` extension.
 
 ##### JSON Format
 The input JSON file should adhere to this specification:
+
+```bash
+$ cat m1.json
+```
 
 ```json
 {

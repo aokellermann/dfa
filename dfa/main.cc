@@ -158,15 +158,9 @@ int main(int argc, char** argv)
     }
   }
 
-  for (;;)
+  std::string language;
+  while (std::getline(std::cin, language) && !language.empty())
   {
-    std::string language;
-    std::cin >> language;
-    if (language.empty())
-    {
-      break;
-    }
-
     std::cout << language << " -> ";
     switch (dfa->AcceptsString(language, verbose))
     {
