@@ -11,7 +11,6 @@
 #include <iostream>
 #include <memory>
 #include <nlohmann/json.hpp>
-#include <sstream>
 
 #include "dfa/dfa.h"
 

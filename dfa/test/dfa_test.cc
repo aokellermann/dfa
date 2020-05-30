@@ -8,9 +8,7 @@
 
 #include <gtest/gtest.h>
 
-#include <fstream>
 #include <memory>
-#include <string>
 #include <vector>
 
 struct DfaTransition
@@ -435,27 +433,6 @@ TEST(Hasher, NoCollisions)
 
 int main(int argc, char** argv)
 {
-  for (int i = 1; i < argc; ++i)
-  {
-    if (std::string(argv[i]) == "-h")
-    {
-      return 0;
-    }
-  }
-
-  for (int i = 1; i < argc; ++i)
-  {
-    if (std::string(argv[i]) == "-d" && i + 1 < argc)
-    {
-      std::ifstream stream(argv[i + 1]);
-      std::stringstream sstr;
-      sstr << stream.rdbuf();
-
-      dfa::Dfa dfa(sstr.str());
-      // return 0;
-    }
-  }
-
   testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }
