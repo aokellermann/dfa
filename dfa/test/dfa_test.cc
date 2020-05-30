@@ -13,11 +13,18 @@
 #include <string>
 #include <vector>
 
-struct Transition
+struct DfaTransition
 {
   std::string s1;
   std::string symbol;
   std::string s2;
+};
+
+struct NfaTransition
+{
+  dfa::StateID s1;
+  dfa::Dfa::Symbol symbol;
+  dfa::StateID s2;
 };
 
 TEST(DFA, ParseDFA)
@@ -52,7 +59,7 @@ TEST(DFA, ParseDFA)
 
   const auto& transitions = dfa.GetTransitions();
 
-  const std::vector<Transition> expected_transitions = {
+  const std::vector<DfaTransition> expected_transitions = {
       {"q1", "0", "q1"}, {"q1", "1", "q2"}, {"q2", "0", "q3"}, {"q2", "1", "q2"}, {"q3", "0", "q2"}, {"q3", "1", "q2"},
   };
 
@@ -143,7 +150,7 @@ TEST(DFA, ParseJSON)
 
   const auto& transitions = dfa.GetTransitions();
 
-  const std::vector<Transition> expected_transitions = {
+  const std::vector<DfaTransition> expected_transitions = {
       {"q1", "0", "q1"}, {"q1", "1", "q2"}, {"q2", "0", "q3"}, {"q2", "1", "q2"}, {"q3", "0", "q2"}, {"q3", "1", "q2"},
   };
 
@@ -230,6 +237,103 @@ TEST(DFA, InvalidAlphabet)
   EXPECT_EQ(dfa.AcceptsString("111c00"), dfa::Dfa::Acceptance::INVALID_ALPHABET);
   EXPECT_EQ(dfa.AcceptsString("111020"), dfa::Dfa::Acceptance::INVALID_ALPHABET);
   EXPECT_EQ(dfa.AcceptsString("1-11c00"), dfa::Dfa::Acceptance::INVALID_ALPHABET);
+}
+
+TEST(NFA, ConvertToDFA)
+{
+  const std::string dfa_file_contents =
+      "states: q0 q1 q2 q3\n"
+      "alphabet: a b\n"
+      "startstate: q0\n"
+      "finalstate: q0\n"
+      "transition: q0 epsilon q1\n"
+      "transition: q1 a q1\n"
+      "transition: q1 a q2\n"
+      "transition: q1 b q2\n"
+      "transition: q2 a q0\n"
+      "transition: q2 a q2\n"
+      "transition: q2 b q3\n"
+      "transition: q3 b q1";
+
+  dfa::Dfa dfa(dfa_file_contents);
+
+  const auto& states = dfa.GetStates();
+  EXPECT_NE(states.find({"q1"}), states.end());
+  EXPECT_NE(states.find({"q2"}), states.end());
+  EXPECT_NE(states.find({"q3"}), states.end());
+  EXPECT_NE(states.find({"q0", "q1"}), states.end());
+  EXPECT_NE(states.find({"q1", "q2"}), states.end());
+  EXPECT_NE(states.find({"q1", "q3"}), states.end());
+  EXPECT_NE(states.find({"q2", "q3"}), states.end());
+  EXPECT_NE(states.find({"q0", "q1", "q2"}), states.end());
+
+  const auto& alphabet = dfa.GetAlphabet();
+  EXPECT_NE(alphabet.find("a"), alphabet.end());
+  EXPECT_NE(alphabet.find("b"), alphabet.end());
+  EXPECT_EQ(alphabet.size(), 2);
+
+  const auto& start_state = dfa.GetStartState();
+  const auto& final_states = dfa.GetFinalStates();
+  EXPECT_EQ(start_state, dfa::StateID({"q0", "q1"}));
+  EXPECT_NE(final_states.find(dfa::StateID{"q0", "q1"}), final_states.end());
+  EXPECT_NE(final_states.find(dfa::StateID{"q0", "q1", "q2"}), final_states.end());
+  EXPECT_EQ(final_states.size(), 2);
+
+  const auto& transitions = dfa.GetTransitions();
+
+  const std::vector<NfaTransition> expected_transitions = {
+      {{"q1"}, "a", {"q1", "q2"}},
+      {{"q1"}, "b", {"q2"}},
+
+      {{"q2"}, "a", {"q0", "q1", "q2"}},
+      {{"q2"}, "b", {"q3"}},
+
+      {{"q3"}, "b", {"q1"}},
+
+      {{"q0", "q1"}, "a", {"q1", "q2"}},
+      {{"q0", "q1"}, "b", {"q2"}},
+
+      {{"q1", "q2"}, "a", {"q0", "q1", "q2"}},
+      {{"q1", "q2"}, "b", {"q2", "q3"}},
+
+      {{"q1", "q3"}, "a", {"q1", "q2"}},
+      {{"q1", "q3"}, "b", {"q1", "q2"}},
+
+      {{"q2", "q3"}, "a", {"q0", "q1", "q2"}},
+      {{"q2", "q3"}, "b", {"q1", "q3"}},
+
+      {{"q0", "q1", "q2"}, "a", {"q0", "q1", "q2"}},
+      {{"q0", "q1", "q2"}, "b", {"q2", "q3"}},
+  };
+
+  for (const auto& transition : expected_transitions)
+  {
+    const auto iter_1 = transitions.find(transition.s1);
+    EXPECT_NE(iter_1, transitions.end());
+
+    if (iter_1 != transitions.end())
+    {
+      const auto iter_2 = iter_1->second.find(transition.symbol);
+      EXPECT_NE(iter_2, iter_1->second.end());
+      if (iter_2 != iter_1->second.end())
+      {
+        EXPECT_EQ(iter_2->second, transition.s2);
+      }
+    }
+  }
+}
+
+TEST(Hasher, NoCollisions)
+{
+  dfa::StateID s1{"q0", "q1", "q2"};
+  dfa::StateID s2{"q0", "q2", "q1"};
+  dfa::StateID s3{"q1", "q0", "q2"};
+  dfa::StateID s4{"q1", "q2", "q0"};
+  dfa::StateID s5{"q2", "q0", "q1"};
+  dfa::StateID s6{"q2", "q1", "q0"};
+
+  dfa::StateIDSet set{s1, s2, s3, s4, s5, s6};
+  EXPECT_EQ(set.size(), 1);
 }
 
 int main(int argc, char** argv)

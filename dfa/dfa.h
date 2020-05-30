@@ -72,6 +72,12 @@ class Dfa
   constexpr const StateIDSet& GetFinalStates() const noexcept { return final_states_; }
 
  private:
+  void ExpandNfaIfNeeded();
+
+  void AggregateEpsilonClosure(StateID& total_state, const StateID& current_state) const;
+
+  void AggregateTransitions(StateIDMap<Transitions>& all_transitions, const StateID& current_state) const;
+
   /**
    * Q: all possible states.
    */
