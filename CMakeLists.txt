@@ -85,9 +85,10 @@ if (DFA_BUILD_EXECUTABLE)
             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
             $<INSTALL_INTERFACE:${CMAKE_INSTALL_BINDIR}>
             )
-    target_compile_options(dfa PRIVATE ${DFA_EXTRA_COMPILE_OPTIONS})
+    target_compile_options(dfash PRIVATE ${DFA_EXTRA_COMPILE_OPTIONS})
+    target_compile_options(dfash PRIVATE ${DFA_EXTRA_COMPILE_OPTIONS})
 
-    target_link_libraries(dfash ${DFA_LIBRARIES} nlohmann_json::nlohmann_json)
+    target_link_libraries(dfash dfa nlohmann_json::nlohmann_json)
 
     install(TARGETS dfash
             DESTINATION ${CMAKE_INSTALL_BINDIR}
