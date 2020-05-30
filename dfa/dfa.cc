@@ -182,7 +182,7 @@ Dfa::Dfa(const Dfa::Json& dfa_file_contents)
   ExpandNfaIfNeeded();
 }
 
-Dfa::Acceptance Dfa::AcceptsString(const std::string& input, bool verbose)
+Dfa::Acceptance Dfa::AcceptsString(const std::string& input, bool verbose) const
 {
   StateID current_state_id = start_state_;
   if (verbose)

@@ -59,7 +59,7 @@ class Dfa
 
   explicit Dfa(const Json& dfa_file_contents);
 
-  Acceptance AcceptsString(const std::string& input, bool verbose = false);
+  Acceptance AcceptsString(const std::string& input, bool verbose = false) const;
 
   constexpr const StateIDSet& GetStates() const noexcept { return states_; }
 
